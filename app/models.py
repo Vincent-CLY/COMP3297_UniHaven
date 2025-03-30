@@ -9,7 +9,7 @@ from django.db import models
 class Accommodation(models.Model):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
-    is_avaliable = models.BooleanField(default=True)
+    is_available = models.BooleanField(default=True)
     owner_details = models.CharField(max_length=100)
     available_from = models.DateTimeField()
     available_to = models.DateTimeField()

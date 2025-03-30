@@ -1,7 +1,12 @@
 from rest_framework import serializers
 from .models import Accommodation
 
-class AccommodationSerializer(serializers.ModelSerializer):
+class SimpleAccommodationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Accommodation
-        fields = '__all__' 
+        fields = ['name',] 
+
+class DetailedAccommodationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Accommodation
+        exclude = ['id',] 
