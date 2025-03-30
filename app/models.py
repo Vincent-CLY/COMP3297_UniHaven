@@ -10,13 +10,13 @@ class Accommodation(models.Model):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
     is_avaliable = models.BooleanField(default=True)
-    ownerDetails = models.CharField(max_length=100)
+    owner_details = models.CharField(max_length=100)
     available_from = models.DateTimeField()
     available_to = models.DateTimeField()
     bed_num = models.IntegerField()
     bedroom_num = models.IntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    distance_from_campus = models.FloatField()
+    price = models.DecimalField(max_digits=10, decimal_places=2) # In HKD
+    distance_from_campus = models.FloatField() # In km
     latitude = models.FloatField()
     longtitude = models.FloatField()
     geoAdrress = models.CharField(max_length=255)
