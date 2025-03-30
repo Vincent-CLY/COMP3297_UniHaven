@@ -19,4 +19,4 @@ class Accommodation(models.Model):
     distance_from_campus = models.FloatField()
     latitude = models.FloatField()
     longtitude = models.FloatField()
-    geoAdrress = models.CharField()
+    geoAdrress = models.CharField(max_length=255)
