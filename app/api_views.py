@@ -15,5 +15,5 @@ class all_available_accommodations(generics.ListAPIView):
     serializer_class = SimpleAccommodationSerializer
 
 class detailed_accommodation(generics.RetrieveAPIView):
-    queryset = Accommodation.objects.all()
+    queryset = Accommodation.objects.filter(is_available="True")
     serializer_class = DetailedAccommodationSerializer
