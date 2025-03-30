@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 # Create your models here.
@@ -13,10 +14,10 @@ class Accommodation(models.Model):
     owner_details = models.CharField(max_length=100)
     available_from = models.DateTimeField()
     available_to = models.DateTimeField()
-    bed_num = models.IntegerField()
-    bedroom_num = models.IntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2) # In HKD
+    bed_num = models.IntegerField(validators=[MinValueValidator(1)])
+    bedroom_num = models.IntegerField(validators=[MinValueValidator(1)])
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)]) # In HKD
     distance_from_campus = models.FloatField() # In km
-    latitude = models.FloatField()
-    longtitude = models.FloatField()
+    latitude = models.FloatField(validators=[MinValueValidator(-90), MaxValueValidator(90)])
+    longtitude = models.FloatField(validators=[MinValueValidator(-180), MaxValueValidator(180)])
     geoAdrress = models.CharField(max_length=255)
