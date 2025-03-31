@@ -35,7 +35,7 @@ class CEDARSStaff(User):
     staff_department = models.CharField(max_length=100)
 
 class Reservation(models.Model):
-    reservation_id = models.IntegerField(primary_key=True) # Primary key
+    reservation_id = models.AutoField(primary_key=True) # Primary key
     user_id = models.ForeignKey(User, on_delete=models.CASCADE) # Foreign key
     accommodation_id = models.ForeignKey(Accommodation, on_delete=models.CASCADE) # Foreign key
     reservation_date = models.DateTimeField()
@@ -44,6 +44,6 @@ class Reservation(models.Model):
     is_cancelled = models.BooleanField(default=False)
 
 class CancelledReservation(models.Model):
-    cancellation_id = models.IntegerField(primary_key=True) # Primary key
+    cancellation_id = models.AutoField(primary_key=True) # Primary key
     reservation_id = models.ForeignKey(Reservation, on_delete=models.CASCADE) # Foreign key
     user_id = models.ForeignKey(User, on_delete=models.CASCADE) # Foreign key [canncelled by user]
