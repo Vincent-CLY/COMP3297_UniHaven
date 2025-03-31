@@ -5,3 +5,6 @@ from .models import *
 # admin.site.register(className)
 
 admin.site.register(Accommodation)
+admin.site.register(User)
+admin.site.register(Reservation)
+admin.site.register(CancelledReservation)
