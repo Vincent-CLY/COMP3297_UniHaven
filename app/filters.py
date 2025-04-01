@@ -8,4 +8,4 @@ class AccommodationFilter(filters.FilterSet):
 
     class Meta:
         model = Accommodation
-        fields = ['name', 'type', 'owner_details', 'available_from', 'available_to', 'bed_num', 'bedroom_num', 'price', 'distance_from_campus', 'latitude', 'longtitude', 'geoAdrress']
+        fields = ['name', 'type', 'owner_details', 'available_from', 'available_to', 'bed_num', 'bedroom_num', 'price', 'distance_from_campus', 'latitude', 'longitude', 'geoAddress']
