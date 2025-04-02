@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 import xml.etree.ElementTree as ET
 
 # Create your models here.
@@ -42,6 +43,7 @@ def get_coordinates_from_address(address):
     return None, None, None  # Return None if no data found
 
 class Accommodation(models.Model):
+    accommodation_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
     is_available = models.BooleanField(default=True)
@@ -66,6 +68,9 @@ class Accommodation(models.Model):
             self.distance_from_campus = calculate_distance(lat, lon, campus_lat, campus_lon)
 
     def save(self, *args, **kwargs):
+        # Check if available_to is larger than available_from
+        if self.available_to <= self.available_from:
+            raise ValidationError('available_to must be later than available_from')
         # Update location data before saving if geoAddress is provided
         if self.name and (self.latitude is None or self.longitude is None):
             self.update_location_data()
