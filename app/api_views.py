@@ -12,7 +12,6 @@ class list_accommodations(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ['name']
 
-
 class detailed_accommodation(generics.RetrieveAPIView):
     queryset = Accommodation.objects.filter(is_available="True")
     serializer_class = DetailedAccommodationSerializer
@@ -24,11 +23,22 @@ class create_reservation(generics.CreateAPIView):
 class cancel_reservation(generics.GenericAPIView):
     queryset = CancelledReservation.objects.all()
     serializer_class = CancelledReservationSerializer
+    # permission_classes = [IsAuthenticated]
 
     def post(self, request, pk, *args, **kwargs):
         try:
             reservation = Reservation.objects.get(pk=pk)
             # Note: Currently doesn't have user's identity verification 
+            print(f"pk: {pk}")
+            # print(f"Accommodation ID: {Accommodation.objects.get(accommodation_id=reservation.accommodation_id).accommodation_id}")
+            # print(f"Accommodation name: {Accommodation.objects.get(accommodation_id=reservation.accommodation_id).name}")
+            cancelled_data = {
+                "reservation_id" : reservation.reservation_id,
+                "user_id" : request.user.user_id
+            }
+            cancelled_serializer = CancelledReservationSerializer(data=cancelled_data)
+            cancelled_serializer.is_valid(raise_exception=True)
+            cancelled_record = cancelled_serializer.save()
             # if user_id != reservation.user_id.user_id: # The user_id is not defined
             #         return Response(
             #         {
@@ -36,7 +46,6 @@ class cancel_reservation(generics.GenericAPIView):
             #         },
             #         status = status.HTTP_400_BAD_REQUEST
             #     )
-            print(f"pk: {pk}")
             if reservation.accommodation_id.accommodation_id != pk: # Prevent client tries to cancel reservation of an accommodation that is not the accommodation that the client has reserved
                 return Response(
                     {
@@ -53,15 +62,6 @@ class cancel_reservation(generics.GenericAPIView):
                     },
                     status = status.HTTP_400_BAD_REQUEST
                 )
-            # print(f"Accommodation ID: {Accommodation.objects.get(accommodation_id=reservation.accommodation_id).accommodation_id}")
-            # print(f"Accommodation name: {Accommodation.objects.get(accommodation_id=reservation.accommodation_id).name}")
-            cancelled_data = {
-                "reservation_id" : reservation.reservation_id,
-                "user_id" : reservation.user_id.user_id
-            }
-            cancelled_serializer = CancelledReservationSerializer(data=cancelled_data)
-            cancelled_serializer.is_valid(raise_exception=True)
-            cancelled_record = cancelled_serializer.save()
 
             notification_data = {
                 "user_id" : reservation.user_id.user_id,

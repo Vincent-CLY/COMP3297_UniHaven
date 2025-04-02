@@ -50,8 +50,8 @@ class Accommodation(models.Model):
     owner_details = models.CharField(max_length=100)
     available_from = models.DateTimeField()
     available_to = models.DateTimeField()
-    bed_num = models.IntegerField()
-    bedroom_num = models.IntegerField()
+    bed_num = models.PositiveIntegerField()
+    bedroom_num = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2) # In HKD
     distance_from_campus = models.FloatField(null=True, blank=True)  # In km, allow null initially
     latitude = models.FloatField(null=True, blank=True)  # Allow null initially
