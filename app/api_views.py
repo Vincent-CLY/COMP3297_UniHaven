@@ -28,8 +28,31 @@ class cancel_reservation(generics.GenericAPIView):
     def post(self, request, pk, *args, **kwargs):
         try:
             reservation = Reservation.objects.get(pk=pk)
+            # Note: Currently doesn't have user's identity verification 
+            # if user_id != reservation.user_id.user_id: # The user_id is not defined
+            #         return Response(
+            #         {
+            #             "error": "You do not have access to this reservation."
+            #         },
+            #         status = status.HTTP_400_BAD_REQUEST
+            #     )
+            print(f"pk: {pk}")
+            if reservation.accommodation_id.accommodation_id != pk: # Prevent client tries to cancel reservation of an accommodation that is not the accommodation that the client has reserved
+                return Response(
+                    {
+                        "error": "The provided accommodation_id does not match accommodation_id in the reservation."
+                    },
+                    status = status.HTTP_400_BAD_REQUEST
+                )
             print(f"Reservation: {reservation.reservation_id}")
             accommodation = Accommodation.objects.get(accommodation_id=reservation.accommodation_id.accommodation_id)
+            if reservation.is_cancelled: # Prevent extra cancel on the same reservation
+                return Response(
+                    {
+                        "error" : f"The reservation of {accommodation.name} has already been cancelled."
+                    },
+                    status = status.HTTP_400_BAD_REQUEST
+                )
             # print(f"Accommodation ID: {Accommodation.objects.get(accommodation_id=reservation.accommodation_id).accommodation_id}")
             # print(f"Accommodation name: {Accommodation.objects.get(accommodation_id=reservation.accommodation_id).name}")
             cancelled_data = {
