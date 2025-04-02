@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Accommodation, Reservation, CancelledReservation, Notification
+from .models import Accommodation, Reservation, CancelledReservation
 
 class SimpleAccommodationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,9 +19,4 @@ class ReservationSerializer(serializers.ModelSerializer):
 class CancelledReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CancelledReservation
-        fields = '__all__'
-
-class NotificationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Notification
         fields = '__all__'
