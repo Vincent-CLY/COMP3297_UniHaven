@@ -27,6 +27,7 @@ class cancel_reservation(generics.GenericAPIView):
 
     def post(self, request, pk, *args, **kwargs):
         try:
+            # reservation = Reservation.objects.get(pk=pk)
             reservation = Reservation.objects.get(pk=pk)
             # Note: Currently doesn't have user's identity verification 
             print(f"pk: {pk}")
@@ -34,7 +35,8 @@ class cancel_reservation(generics.GenericAPIView):
             # print(f"Accommodation name: {Accommodation.objects.get(accommodation_id=reservation.accommodation_id).name}")
             cancelled_data = {
                 "reservation_id" : reservation.reservation_id,
-                "user_id" : request.user.user_id
+                # "user_id" : request.user.user_id
+                "user_id" : reservation.user_id.user_id
             }
             cancelled_serializer = CancelledReservationSerializer(data=cancelled_data)
             cancelled_serializer.is_valid(raise_exception=True)
@@ -46,13 +48,7 @@ class cancel_reservation(generics.GenericAPIView):
             #         },
             #         status = status.HTTP_400_BAD_REQUEST
             #     )
-            if reservation.accommodation_id.accommodation_id != pk: # Prevent client tries to cancel reservation of an accommodation that is not the accommodation that the client has reserved
-                return Response(
-                    {
-                        "error": "The provided accommodation_id does not match accommodation_id in the reservation."
-                    },
-                    status = status.HTTP_400_BAD_REQUEST
-                )
+            print(f"Accommodation_id: {reservation.accommodation_id.accommodation_id}")
             print(f"Reservation: {reservation.reservation_id}")
             accommodation = Accommodation.objects.get(accommodation_id=reservation.accommodation_id.accommodation_id)
             if reservation.is_cancelled: # Prevent extra cancel on the same reservation

@@ -9,7 +9,7 @@ class SimpleAccommodationSerializer(serializers.ModelSerializer):
 class DetailedAccommodationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Accommodation
-        exclude = ['id',] 
+        exclude = ['accommodation_id',] 
 
 class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
