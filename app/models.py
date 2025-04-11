@@ -82,10 +82,23 @@ class Accommodation(models.Model):
 
 
 class User(models.Model):
-    user_id = models.IntegerField(primary_key=True) # Primary key
+    user_id = models.AutoField(primary_key=True) # Primary key
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
+
+    def get_user_type(self):
+        try:
+            # Check if this user has a HKUStudent record
+            self.hkustudent
+            return 'HKUStudent'
+        except HKUStudent.DoesNotExist:
+            try:
+                # Check if this user has a CEDARSStaff record
+                self.cedarsstaff
+                return 'CEDARSStaff'
+            except CEDARSStaff.DoesNotExist:
+                return 'General User (Type Undefined)'
 
 class HKUStudent(User):
     HKU_ID = models.CharField(max_length=20, unique=True)

@@ -15,7 +15,7 @@ class CEDARSStaffAdmin(admin.ModelAdmin):
     list_display = ['user_id', 'username', 'email', 'staff_id', 'staff_department']
     fields = ['username', 'password', 'email', 'staff_id', 'staff_department']  # Include parent and subclass fields
 
-
+admin.site.register(User)
 admin.site.register(Accommodation)
 admin.site.register(HKUStudent, HKUStudentAdmin)
 admin.site.register(CEDARSStaff, CEDARSStaffAdmin)
