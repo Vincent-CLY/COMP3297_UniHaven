@@ -16,9 +16,84 @@ class detailed_accommodation(generics.RetrieveAPIView):
     queryset = Accommodation.objects.filter(is_available="True")
     serializer_class = DetailedAccommodationSerializer
 
-class create_reservation(generics.CreateAPIView):
-    model = Reservation
+class create_reservation(generics.GenericAPIView):
+    queryset = Reservation.objects.all()
     serializer_class = ReservationSerializer
+
+    def post(self, request, accommodation_id, *args, **kwargs):
+        try:
+            user_id = request.data.get("user_id")
+            reservation_date = request.data.get("reservation_date")
+            check_in_date = request.data.get("check_in_date")
+            check_out_date = request.data.get("check_out_date")
+
+            if not user_id or not reservation_date or not check_in_date or not check_out_date:
+                return Response(
+                    {
+                        "error": "user_id, reservation_date, check_in_date and check_out_date are required."
+                    },
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+
+            try:
+                user_id = int(user_id)
+            except ValueError:
+                return Response(
+                    {
+                        "error": "user_id must be an integer."
+                    },
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+
+            # Check if the accommodation exists
+            try:
+                accommodation = Accommodation.objects.filter(accommodation_id=accommodation_id).first()
+            except Accommodation.DoesNotExist:
+                return Response(
+                    {
+                        "error": "Accommodation not found."
+                    },
+                    status = status.HTTP_404_NOT_FOUND
+                )
+
+            # Create a new reservation
+            reservation_data = {
+                "user_id": user_id,
+                "accommodation_id": accommodation_id,
+                "reservation_date": reservation_date,
+                "check_in_date": check_in_date,
+                "check_out_date": check_out_date,
+                "is_cancelled": False
+            }
+            serializer = self.get_serializer(data=reservation_data)
+            serializer.is_valid(raise_exception=True)
+            reservation_record = serializer.save()
+
+            # Update the accommodation's availability
+            accommodation.is_available = False
+            accommodation.save()
+
+            notification_data = {
+                "user_id" : reservation_record.user_id.user_id,
+                "type" : "Reservation",
+                "notification_content" : f"Your reservation of {accommodation.name} has been created successfully."
+            }
+            notification_serializer = NotificationSerializer(data=notification_data)
+            notification_serializer.is_valid(raise_exception=True)
+            notification_record = notification_serializer.save()
+
+            return Response(
+                {
+                    "reservation" : ReservationSerializer(reservation_record).data,
+                    "notification" : NotificationSerializer(notification_record).data
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        except Exception as e:
+            return Response(
+                {"error" : str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 class cancel_reservation(generics.GenericAPIView):
     queryset = CancelledReservation.objects.all()
