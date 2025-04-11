@@ -25,18 +25,52 @@ class cancel_reservation(generics.GenericAPIView):
     serializer_class = CancelledReservationSerializer
     # permission_classes = [IsAuthenticated]
 
-    def post(self, request, pk, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         try:
+            user_id = request.data.get("user_id")
+            reservation_id = request.data.get("reservation_id")
+
+            if not user_id or not reservation_id:
+                return Response(
+                    {
+                        "error": "Both user_id and reservation_id are required."
+                    },
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+
+            try:
+                user_id = int(user_id)
+                reservation_id = int(reservation_id)
+            except ValueError:
+                return Response(
+                    {
+                        "error": "user_id and reservation_id must be integers."
+                    },
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+
             # reservation = Reservation.objects.get(pk=pk)
-            reservation = Reservation.objects.get(pk=pk)
-            # Note: Currently doesn't have user's identity verification 
-            print(f"pk: {pk}")
-            # print(f"Accommodation ID: {Accommodation.objects.get(accommodation_id=reservation.accommodation_id).accommodation_id}")
-            # print(f"Accommodation name: {Accommodation.objects.get(accommodation_id=reservation.accommodation_id).name}")
+            reservation = Reservation.objects.get(pk=reservation_id)
+            
+            if not reservation:
+                return Response(
+                    {
+                        "error": "Reservation not found."
+                    },
+                    status = status.HTTP_404_NOT_FOUND
+                )
+
+            if user_id != reservation.user_id.user_id:
+                return Response(
+                    {
+                        "error": "You do not have access to this reservation."
+                    },
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+
             cancelled_data = {
-                "reservation_id" : reservation.reservation_id,
-                # "user_id" : request.user.user_id
-                "user_id" : reservation.user_id.user_id
+                "reservation_id" : reservation_id,
+                "user_id" : user_id
             }
             cancelled_serializer = CancelledReservationSerializer(data=cancelled_data)
             cancelled_serializer.is_valid(raise_exception=True)
