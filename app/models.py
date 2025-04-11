@@ -46,6 +46,7 @@ class Accommodation(models.Model):
     accommodation_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
+    avg_rating = models.FloatField(null=True, blank=True, default=0.0)  # Allow null initially
     is_available = models.BooleanField(default=True)
     owner_details = models.CharField(max_length=100)
     available_from = models.DateTimeField()
@@ -112,3 +113,9 @@ class Notification(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE) # Foreign key
     type = models.CharField(max_length=100)
     notification_content = models.TextField()
+
+class Rating(models.Model):
+    rating_id = models.AutoField(primary_key=True)
+    accommodation_id = models.ForeignKey(Accommodation, on_delete=models.CASCADE) 
+    score = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)

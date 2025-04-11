@@ -2,8 +2,8 @@ from rest_framework import generics, filters, status
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .filters import AccommodationFilter
-from .models import Accommodation, Reservation, CancelledReservation
-from .serializers import SimpleAccommodationSerializer, DetailedAccommodationSerializer, ReservationSerializer, CancelledReservationSerializer, NotificationSerializer
+from .models import Accommodation, Reservation, CancelledReservation, Rating
+from .serializers import SimpleAccommodationSerializer, DetailedAccommodationSerializer, ReservationSerializer, CancelledReservationSerializer, NotificationSerializer, RatingSerializer
 
 class list_accommodations(generics.ListAPIView):
     queryset = Accommodation.objects.filter(is_available="True")
@@ -25,34 +25,32 @@ class cancel_reservation(generics.GenericAPIView):
     serializer_class = CancelledReservationSerializer
     # permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, reservation_id, *args, **kwargs):
         try:
             user_id = request.data.get("user_id")
-            reservation_id = request.data.get("reservation_id")
 
-            if not user_id or not reservation_id:
+            if not user_id:
                 return Response(
                     {
-                        "error": "Both user_id and reservation_id are required."
+                        "error": "user_id is required."
                     },
                     status = status.HTTP_400_BAD_REQUEST
                 )
 
             try:
                 user_id = int(user_id)
-                reservation_id = int(reservation_id)
             except ValueError:
                 return Response(
                     {
-                        "error": "user_id and reservation_id must be integers."
+                        "error": "user_id must be an integer."
                     },
                     status = status.HTTP_400_BAD_REQUEST
                 )
 
             # reservation = Reservation.objects.get(pk=pk)
-            reservation = Reservation.objects.get(pk=reservation_id)
-            
-            if not reservation:
+            try:
+                reservation = Reservation.objects.filter(reservation_id=reservation_id).first()
+            except Reservation.DoesNotExist:
                 return Response(
                     {
                         "error": "Reservation not found."
@@ -82,9 +80,18 @@ class cancel_reservation(generics.GenericAPIView):
             #         },
             #         status = status.HTTP_400_BAD_REQUEST
             #     )
-            print(f"Accommodation_id: {reservation.accommodation_id.accommodation_id}")
-            print(f"Reservation: {reservation.reservation_id}")
-            accommodation = Accommodation.objects.get(accommodation_id=reservation.accommodation_id.accommodation_id)
+            # print(f"Accommodation_id: {reservation.accommodation_id.accommodation_id}")
+            # print(f"Reservation: {reservation.reservation_id}")
+            try:
+                accommodation = Accommodation.objects.filter(accommodation_id=reservation.accommodation_id.accommodation_id).first()
+            except Accommodation.DoesNotExist:
+                return Response(
+                    {
+                        "error": "Accommodation not found."
+                    },
+                    status = status.HTTP_404_NOT_FOUND
+                )
+            
             if reservation.is_cancelled: # Prevent extra cancel on the same reservation
                 return Response(
                     {
@@ -122,7 +129,84 @@ class cancel_reservation(generics.GenericAPIView):
                 status = status.HTTP_404_NOT_FOUND,
             )
 
+class rate_accommodation(generics.GenericAPIView):
+    queryset = Rating.objects.all()
+    serializer_class = RatingSerializer
 
+    def post(self, request, accommodation_id, *args, **kwargs):
+        try:
+            user_id = request.data.get("user_id")
+            score = request.data.get("score")
 
+            if not user_id or not score:
+                return Response(
+                    {
+                        "error": "user_id and score are required."
+                    },
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+
+            try:
+                user_id = int(user_id)
+                score = int(score)
+            except ValueError:
+                return Response(
+                    {
+                        "error": "user_id and score must be integers"
+                    },
+                    status = status.HTTP_400_BAD_REQUEST
+                )
+
+            # Check if the accommodation exists
+            try:
+                accommodation = Accommodation.objects.filter(accommodation_id=accommodation_id).first()
+            except Accommodation.DoesNotExist:
+                return Response(
+                    {
+                        "error": "Accommodation not found."
+                    },
+                    status = status.HTTP_404_NOT_FOUND
+                )
+
+            # Check if the user has already rated this accommodation
+            existing_rating = Rating.objects.filter(accommodation_id=accommodation, user_id=user_id).first()
+            if existing_rating:
+                existing_rating.score = score
+                existing_rating.save()
+                return Response(
+                    {
+                        "message": f"Rating to {accommodation.name} has been updated to {existing_rating.score} successfully.",
+                    },
+                    status = status.HTTP_200_OK
+                )
+
+            # Create a new rating
+            rating_data = {
+                "accommodation_id": accommodation_id,
+                "user_id": user_id,
+                "score": score
+            }
+            serializer = self.get_serializer(data=rating_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            # Update the accommodation's average rating
+            ratings = Rating.objects.filter(accommodation_id=accommodation)
+            avg_rating = sum(rating.score for rating in ratings) / len(ratings)
+            accommodation.avg_rating = avg_rating
+            accommodation.save()
+
+            return Response(
+                {
+                    "rating": serializer.data,
+                    "average_rating": avg_rating
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        except Exception as e:
+            return Response(
+                {"error" : str(e)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
     
         
